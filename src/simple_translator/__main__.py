@@ -40,8 +40,13 @@ class TranslatorManager:
         PACKAGES_DIR.mkdir(parents=True, exist_ok=True)
 
         # Set the package directory environment variable to use our custom path
-        os.environ["ARGOS_PACKAGE_DIR"] = str(PACKAGES_DIR)
-        os.environ["ARGOS_PACKAGES_DIR"] = str(PACKAGES_DIR)  # For backwards compatibility
+        os.environ["ARGOS_TRANSLATE_PACKAGE_DIR "] = str(PACKAGES_DIR) 
+
+        ###
+        # TODO: Packages still go and used in: 
+        # C:\Users\<USER>\.local\share\argos-translate\packages
+        # This needs to be chenged to: ..\assets\packages
+        ###
 
     def install_model(self, from_code: str, to_code: str) -> bool:
         """
@@ -197,6 +202,7 @@ def parse_arguments():
 def main():
     """Main entry point for the translation utility."""
     args = parse_arguments()
+    print(f"Installed Packages location: {package.get_installed_packages()}")
 
     # Set debug level if requested
     if args.debug:
