@@ -1,11 +1,3 @@
-"""
-Argos Translate - Translation Utility
-A refactored version of the translation utility that ensures models are properly
-placed in the /assets/packages folder.
-
-Requirements: argostranslate package installed (pip install argostranslate)
-"""
-
 import sys
 import os
 import shutil
@@ -14,6 +6,17 @@ import traceback
 import logging
 from pathlib import Path
 from typing import Optional
+
+# Path definitions
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+ASSETS_DIR = BASE_DIR / "assets"
+DOWNLOAD_DIR = ASSETS_DIR / "packages"
+MODELS_DIR = ASSETS_DIR / "models"
+ARGOS_DATA_DIR = MODELS_DIR
+
+# Set the environment variable before importing argostranslate
+os.environ["ARGOS_PACKAGES_DIR"] = str(MODELS_DIR)
+
 from argostranslate import package, translate
 
 # Configure logging
@@ -24,12 +27,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Path definitions
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-ASSETS_DIR = BASE_DIR / "assets"
-PACKAGES_DIR = ASSETS_DIR / "packages"
-ARGOS_DATA_DIR = ASSETS_DIR / "argos-translate"
-
 
 class TranslatorManager:
     """Manager class for translation operations."""
@@ -37,16 +34,8 @@ class TranslatorManager:
     def __init__(self):
         """Initialize the translator manager and ensure directories exist."""
         # Ensure required directories exist
-        PACKAGES_DIR.mkdir(parents=True, exist_ok=True)
-
-        # Set the package directory environment variable to use our custom path
-        os.environ["ARGOS_TRANSLATE_PACKAGE_DIR "] = str(PACKAGES_DIR) 
-
-        ###
-        # TODO: Packages still go and used in: 
-        # C:\Users\<USER>\.local\share\argos-translate\packages
-        # This needs to be chenged to: ..\assets\packages
-        ###
+        DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     def install_model(self, from_code: str, to_code: str) -> bool:
         """
@@ -86,7 +75,7 @@ class TranslatorManager:
 
             # Define the model path with a consistent naming convention
             model_filename = f"{from_code}_{to_code}.argosmodel"
-            model_path = PACKAGES_DIR / model_filename
+            model_path = DOWNLOAD_DIR / model_filename
 
             # Download the model if it doesn't exist
             if not model_path.exists():
