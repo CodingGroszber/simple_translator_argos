@@ -132,22 +132,6 @@ class TranslatorManager:
 
         return translation
 
-    def translate_text(self, text: str, from_code: str, to_code: str) -> str:
-        """
-        Translate text from one language to another.
-
-        Args:
-            text: Text to translate
-            from_code: Source language code
-            to_code: Target language code
-
-        Returns:
-            str: Translated text
-        """
-        self.install_model(from_code, to_code)
-        translator = self.create_translator(from_code, to_code)
-        return translator.translate(text)
-
     def uninstall_all_models(self) -> None:
         """Uninstall all installed Argos Translate packages."""
         installed_packages = package.get_installed_packages()

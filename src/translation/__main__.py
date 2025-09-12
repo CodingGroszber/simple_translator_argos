@@ -13,6 +13,7 @@ from translator import TranslatorManager, package, logger
 
 # Import from iohandler.py
 from iohandler import continuous_mode
+from iohandler import single_mode
 
 def parse_arguments():
     """Parse command line arguments."""
@@ -29,9 +30,9 @@ def parse_arguments():
     parser.add_argument("--text",
                         default="Üdv világ, ez egy teszt fordítás!",
                         help="Text to translate")
-    parser.add_argument("--continuous",
+    parser.add_argument("--single",
                         action="store_true",
-                        help="Continuous mode (default: false)")
+                        help="Single translation mode (default: false)")
     parser.add_argument("--debug",
                         action="store_true",
                         help="Enable debug logging")
@@ -63,18 +64,11 @@ def main():
         translator = translator_mgr.create_translator(args.from_lang, args.to_lang)
 
         # Perform continuous translation
-        if args.continuous:
-            continuous_mode(translator, args)
+        if args.single:
+            single_mode(translator, args)
         else:
-            # Perform single translation
-            result = translator_mgr.translate_text(
-                args.text, args.from_lang, args.to_lang)
+            continuous_mode(translator, args)
 
-            # Display results
-            print("\n" + "=" * 40)
-            print(f"SOURCE [{args.from_lang}]: {args.text}")
-            print(f"TARGET [{args.to_lang}]: {result}")
-            print("=" * 40)
 
     except Exception as e:
         logger.error(f"Translation failed: {e}")

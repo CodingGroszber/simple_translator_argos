@@ -16,3 +16,11 @@ def continuous_mode(translator, args):
             print("\nExiting due to end-of-file (Ctrl+D/Ctrl+Z).")
             loop_continue = False
             break
+
+
+def single_mode(translator, args):
+    result = translator.translate(args.text)
+    print("\n" + "=" * 40)
+    print(f"SOURCE [{args.from_lang}]: {args.text}")
+    print(f"TARGET [{args.to_lang}]: {result}")
+    print("=" * 40)
