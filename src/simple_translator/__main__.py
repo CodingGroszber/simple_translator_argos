@@ -8,168 +8,11 @@ from operator import truediv
 from pathlib import Path
 from typing import Optional
 
-# Path definitions
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-ASSETS_DIR = BASE_DIR / "assets"
-DOWNLOAD_DIR = ASSETS_DIR / "packages"
-MODELS_DIR = ASSETS_DIR / "models"
-ARGOS_DATA_DIR = MODELS_DIR
+# Import from translator.py
+from translator import TranslatorManager, package, logger
 
-# Set the environment variable before importing argostranslate
-os.environ["ARGOS_PACKAGES_DIR"] = str(MODELS_DIR)
-
-from argostranslate import package, translate
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%H:%M:%S"
-)
-logger = logging.getLogger(__name__)
-
-
-class TranslatorManager:
-    """Manager class for translation operations."""
-
-    def __init__(self):
-        """Initialize the translator manager and ensure directories exist."""
-        # Ensure required directories exist
-        DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        MODELS_DIR.mkdir(parents=True, exist_ok=True)
-
-    def install_model(self, from_code: str, to_code: str) -> bool:
-        """
-        Install the translation model for the given language pair if not already installed.
-
-        Args:
-            from_code: Source language code
-            to_code: Target language code
-
-        Returns:
-            bool: True if installation was successful, False otherwise
-        """
-        try:
-            # Check if model is already installed and usable
-            installed_languages = translate.get_installed_languages()
-            from_lang = next((lang for lang in installed_languages
-                             if lang.code == from_code), None)
-
-            if from_lang:
-                is_installed = any(t.to_lang.code == to_code
-                                   for t in from_lang.translations_from)
-                if is_installed:
-                    logger.info(
-                        f"Model {from_code}->{to_code} already installed.")
-                    return True
-
-            # Update package index and find the required model
-            logger.info("Updating package index...")
-            package.update_package_index()
-            available_packages = package.get_available_packages()
-
-            model = next((p for p in available_packages
-                         if p.from_code == from_code and p.to_code == to_code), None)
-            if not model:
-                raise ValueError(
-                    f"No translation model available for {from_code}->{to_code}")
-
-            # Define the model path with a consistent naming convention
-            model_filename = f"{from_code}_{to_code}.argosmodel"
-            model_path = DOWNLOAD_DIR / model_filename
-
-            # Download the model if it doesn't exist
-            if not model_path.exists():
-                logger.info(f"Downloading model to {model_path}...")
-                downloaded_path = model.download()
-                # Move downloaded file to the packages directory
-                shutil.move(downloaded_path, model_path)
-                logger.info(f"Model downloaded successfully to {model_path}")
-            else:
-                logger.info(f"Using existing model at {model_path}")
-
-            # Install the model
-            logger.info("Installing model...")
-            package.install_from_path(str(model_path))
-            logger.info("Model installed successfully.")
-            return True
-
-        except Exception as e:
-            logger.error(f"Model installation failed: {e}")
-            logger.debug(traceback.format_exc())
-            return False
-
-    def create_translator(self, from_code: str, to_code: str) -> translate.ITranslation:
-        """
-        Create a translator object for the given language codes.
-
-        Args:
-            from_code: Source language code
-            to_code: Target language code
-
-        Returns:
-            translate.ITranslation: Translator object
-
-        Raises:
-            ValueError: If the language pair is not available
-        """
-        installed = translate.get_installed_languages()
-        from_lang = next(
-            (lang for lang in installed if lang.code == from_code), None)
-
-        if not from_lang:
-            raise ValueError(f"Source language '{from_code}' not installed.")
-
-        translation = None
-        for trans in from_lang.translations_from:
-            if trans.to_lang.code == to_code:
-                translation = trans
-                break
-
-        if not translation:
-            raise ValueError(
-                f"Target language '{to_code}' not supported by source '{from_code}'.")
-
-        return translation
-
-    def translate_text(self, text: str, from_code: str, to_code: str) -> str:
-        """
-        Translate text from one language to another.
-
-        Args:
-            text: Text to translate
-            from_code: Source language code
-            to_code: Target language code
-
-        Returns:
-            str: Translated text
-        """
-        self.install_model(from_code, to_code)
-        translator = self.create_translator(from_code, to_code)
-        return translator.translate(text)
-
-    def uninstall_all_models(self) -> None:
-        """Uninstall all installed Argos Translate packages."""
-        installed_packages = package.get_installed_packages()
-        for pkg in installed_packages:
-            logger.info(f"Uninstalling {pkg.from_code} → {pkg.to_code}")
-            package.uninstall_package(pkg)
-        logger.info("All models uninstalled.")
-
-    def wipe_argos_data(self) -> None:
-        """Remove Argos Translate internal data directory."""
-        if ARGOS_DATA_DIR.exists():
-            logger.info(f"Removing Argos data directory: {ARGOS_DATA_DIR}")
-            shutil.rmtree(ARGOS_DATA_DIR)
-            logger.info("Data directory removed.")
-
-    def force_reset(self) -> None:
-        """Reset all Argos Translate models and data."""
-        logger.info("Performing complete reset of all models and data...")
-        self.uninstall_all_models()
-        self.wipe_argos_data()
-        logger.info("Reset completed successfully.")
-
+# Import from iohandler.py
+from iohandler import continuous_mode
 
 def parse_arguments():
     """Parse command line arguments."""
@@ -219,24 +62,9 @@ def main():
         translator_mgr.install_model(args.from_lang, args.to_lang)
         translator = translator_mgr.create_translator(args.from_lang, args.to_lang)
 
-        # Perform continuous transaltion
-        if args.continuous: # args.continuous:
-            loop_continue = True
-            while True:
-                try:
-                    print("Translate input:")
-                    text_input = sys.stdin.readline()
-                    result = translator.translate(text_input)
-                    print(f"Translated [{args.to_lang}]: {result}")
-                except KeyboardInterrupt:
-                    print("\nExiting due to keyboard interrupt.")
-                    loop_continue = False
-                    break
-                except EOFError:
-                    print("\nExiting due to end-of-file (Ctrl+D/Ctrl+Z).")
-                    loop_continue = False
-                    break
-
+        # Perform continuous translation
+        if args.continuous:
+            continuous_mode(translator, args)
         else:
             # Perform single translation
             result = translator_mgr.translate_text(
