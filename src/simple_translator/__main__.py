@@ -4,6 +4,7 @@ import shutil
 import argparse
 import traceback
 import logging
+from operator import truediv
 from pathlib import Path
 from typing import Optional
 
@@ -173,16 +174,23 @@ class TranslatorManager:
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description="Argos Translate Utility")
-    parser.add_argument("--reset", action="store_true",
+    parser.add_argument("--reset",
+                        action="store_true",
                         help="Force reset all installed models and data")
-    parser.add_argument("--from-lang", default="en",
-                        help="Source language code (default: en)")
-    parser.add_argument("--to-lang", default="de",
-                        help="Target language code (default: de)")
+    parser.add_argument("--from-lang",
+                        default="hu",
+                        help="Source language code (default: hu)")
+    parser.add_argument("--to-lang",
+                        default="en",
+                        help="Target language code (default: en)")
     parser.add_argument("--text",
-                        default="Hello, world! This is a test translation.",
+                        default="Üdv világ, ez egy teszt fordítás!",
                         help="Text to translate")
-    parser.add_argument("--debug", action="store_true",
+    parser.add_argument("--continuous",
+                        action="store_true",
+                        help="Continuous mode (default: false)")
+    parser.add_argument("--debug",
+                        action="store_true",
                         help="Enable debug logging")
 
     return parser.parse_args()
@@ -207,15 +215,38 @@ def main():
                 # If no specific translation was requested, exit after reset
                 return
 
-        # Perform translation
-        result = translator_mgr.translate_text(
-            args.text, args.from_lang, args.to_lang)
+        # Initiate translation
+        translator_mgr.install_model(args.from_lang, args.to_lang)
+        translator = translator_mgr.create_translator(args.from_lang, args.to_lang)
 
-        # Display results
-        print("\n" + "=" * 40)
-        print(f"SOURCE [{args.from_lang}]: {args.text}")
-        print(f"TARGET [{args.to_lang}]: {result}")
-        print("=" * 40)
+        # Perform continuous transaltion
+        if args.continuous: # args.continuous:
+            loop_continue = True
+            while True:
+                try:
+                    print("Translate input:")
+                    text_input = sys.stdin.readline()
+                    result = translator.translate(text_input)
+                    print(f"Translated [{args.to_lang}]: {result}")
+                except KeyboardInterrupt:
+                    print("\nExiting due to keyboard interrupt.")
+                    loop_continue = False
+                    break
+                except EOFError:
+                    print("\nExiting due to end-of-file (Ctrl+D/Ctrl+Z).")
+                    loop_continue = False
+                    break
+
+        else:
+            # Perform single translation
+            result = translator_mgr.translate_text(
+                args.text, args.from_lang, args.to_lang)
+
+            # Display results
+            print("\n" + "=" * 40)
+            print(f"SOURCE [{args.from_lang}]: {args.text}")
+            print(f"TARGET [{args.to_lang}]: {result}")
+            print("=" * 40)
 
     except Exception as e:
         logger.error(f"Translation failed: {e}")
