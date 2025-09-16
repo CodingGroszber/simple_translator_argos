@@ -4,6 +4,8 @@ import shutil
 import argparse
 import traceback
 import logging
+import iohandler
+import translator
 from operator import truediv
 from pathlib import Path
 from typing import Optional
@@ -14,6 +16,7 @@ from translator import TranslatorManager, package, logger
 # Import from iohandler.py
 from iohandler import continuous_mode
 from iohandler import single_mode
+
 
 def parse_arguments():
     """Parse command line arguments."""
@@ -61,14 +64,14 @@ def main():
 
         # Initiate translation
         translator_mgr.install_model(args.from_lang, args.to_lang)
-        translator = translator_mgr.create_translator(args.from_lang, args.to_lang)
+        translator = translator_mgr.create_translator(
+            args.from_lang, args.to_lang)
 
         # Perform continuous translation
         if args.single:
             single_mode(translator, args)
         else:
             continuous_mode(translator, args)
-
 
     except Exception as e:
         logger.error(f"Translation failed: {e}")
