@@ -6,6 +6,7 @@ import shutil
 import argparse
 import traceback
 import logging
+from operator import truediv
 from pathlib import Path
 from typing import Optional
 
@@ -132,22 +133,6 @@ class TranslatorManager:
 
         return translation
 
-    def translate_text(self, text: str, from_code: str, to_code: str) -> str:
-        """
-        Translate text from one language to another.
-
-        Args:
-            text: Text to translate
-            from_code: Source language code
-            to_code: Target language code
-
-        Returns:
-            str: Translated text
-        """
-        self.install_model(from_code, to_code)
-        translator = self.create_translator(from_code, to_code)
-        return translator.translate(text)
-
     def uninstall_all_models(self) -> None:
         """Uninstall all installed Argos Translate packages."""
         installed_packages = package.get_installed_packages()
@@ -168,6 +153,7 @@ class TranslatorManager:
         logger.info("Performing complete reset of all models and data...")
         self.uninstall_all_models()
         self.wipe_argos_data()
+<<<<<<< HEAD:src/simple_translator/__main__.py
         logger.info("Reset completed successfully.")
 <<<<<<< Updated upstream:src/simple_translator/__main__.py
 
@@ -230,3 +216,6 @@ if __name__ == "__main__":
     main()
 =======
 >>>>>>> Stashed changes:src/translation/translator.py
+=======
+        logger.info("Reset completed successfully.")
+>>>>>>> 98b31b2984d7a0b685eee101e191e0c60833ae5b:src/translation/translator.py
