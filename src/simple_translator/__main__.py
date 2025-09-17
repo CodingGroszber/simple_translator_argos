@@ -1,3 +1,5 @@
+# translator.py (unchanged; no modifications needed here)
+from argostranslate import package, translate
 import sys
 import os
 import shutil
@@ -17,7 +19,6 @@ ARGOS_DATA_DIR = MODELS_DIR
 # Set the environment variable before importing argostranslate
 os.environ["ARGOS_PACKAGES_DIR"] = str(MODELS_DIR)
 
-from argostranslate import package, translate
 
 # Configure logging
 logging.basicConfig(
@@ -168,6 +169,7 @@ class TranslatorManager:
         self.uninstall_all_models()
         self.wipe_argos_data()
         logger.info("Reset completed successfully.")
+<<<<<<< Updated upstream:src/simple_translator/__main__.py
 
 
 def parse_arguments():
@@ -226,3 +228,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> Stashed changes:src/translation/translator.py
