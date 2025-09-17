@@ -4,6 +4,7 @@ import shutil
 import argparse
 import traceback
 import logging
+from operator import truediv
 from pathlib import Path
 from typing import Optional
 
@@ -131,22 +132,6 @@ class TranslatorManager:
 
         return translation
 
-    def translate_text(self, text: str, from_code: str, to_code: str) -> str:
-        """
-        Translate text from one language to another.
-
-        Args:
-            text: Text to translate
-            from_code: Source language code
-            to_code: Target language code
-
-        Returns:
-            str: Translated text
-        """
-        self.install_model(from_code, to_code)
-        translator = self.create_translator(from_code, to_code)
-        return translator.translate(text)
-
     def uninstall_all_models(self) -> None:
         """Uninstall all installed Argos Translate packages."""
         installed_packages = package.get_installed_packages()
@@ -168,61 +153,3 @@ class TranslatorManager:
         self.uninstall_all_models()
         self.wipe_argos_data()
         logger.info("Reset completed successfully.")
-
-
-def parse_arguments():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="Argos Translate Utility")
-    parser.add_argument("--reset", action="store_true",
-                        help="Force reset all installed models and data")
-    parser.add_argument("--from-lang", default="en",
-                        help="Source language code (default: en)")
-    parser.add_argument("--to-lang", default="de",
-                        help="Target language code (default: de)")
-    parser.add_argument("--text",
-                        default="Hello, world! This is a test translation.",
-                        help="Text to translate")
-    parser.add_argument("--debug", action="store_true",
-                        help="Enable debug logging")
-
-    return parser.parse_args()
-
-
-def main():
-    """Main entry point for the translation utility."""
-    args = parse_arguments()
-    print(f"Installed Packages location: {package.get_installed_packages()}")
-
-    # Set debug level if requested
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-
-    translator_mgr = TranslatorManager()
-
-    try:
-        # Handle reset request if specified
-        if args.reset:
-            translator_mgr.force_reset()
-            if args.text == "Hello, world! This is a test translation.":
-                # If no specific translation was requested, exit after reset
-                return
-
-        # Perform translation
-        result = translator_mgr.translate_text(
-            args.text, args.from_lang, args.to_lang)
-
-        # Display results
-        print("\n" + "=" * 40)
-        print(f"SOURCE [{args.from_lang}]: {args.text}")
-        print(f"TARGET [{args.to_lang}]: {result}")
-        print("=" * 40)
-
-    except Exception as e:
-        logger.error(f"Translation failed: {e}")
-        if args.debug:
-            traceback.print_exc()
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
