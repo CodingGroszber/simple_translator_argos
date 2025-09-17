@@ -153,9 +153,8 @@ class TranslatorManager:
         logger.info("Performing complete reset of all models and data...")
         self.uninstall_all_models()
         self.wipe_argos_data()
-<<<<<<< HEAD:src/simple_translator/__main__.py
+
         logger.info("Reset completed successfully.")
-<<<<<<< Updated upstream:src/simple_translator/__main__.py
 
 
 def parse_arguments():
@@ -214,8 +213,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> Stashed changes:src/translation/translator.py
-=======
-        logger.info("Reset completed successfully.")
->>>>>>> 98b31b2984d7a0b685eee101e191e0c60833ae5b:src/translation/translator.py
+    logger.info("Reset completed successfully.")
